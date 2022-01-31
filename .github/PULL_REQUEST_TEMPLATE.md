@@ -9,7 +9,7 @@
 
 <!--
 - Make a GitHub Access token here https://github.com/settings/tokens
-- cp secrets.txt.example secrets.txt
+- `cp secrets.txt.example secrets.txt`
 - Update the value of GITHUB_TOKEN in secrets.txt
 - install Node >= 14
 - 
