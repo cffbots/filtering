@@ -47,7 +47,9 @@ const whitelist = loadFromJsonfile('./whitelist.json');
 
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
-const urls = await filterAsync(whitelist, includeHasCitationcff);
+let urls = urls_rsd;
+urls = urls.filter(includeWhitelisted);
+urls = await filterAsync(whitelist, includeHasCitationcff);
 
 console.log(urls);
 
