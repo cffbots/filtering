@@ -16,15 +16,29 @@ const includeWhitelisted = (url) => {
 const includeHasCitationcff = async (url) => {
 
     const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
-
     const { data: { default_branch } } = await octokit.request('GET /repos/{owner}/{repo}', { owner, repo });
-
     const { data: { tree } } = await octokit.rest.git.getTree({
         owner,
         repo,
         tree_sha: default_branch
     });
     return tree.filter(treeitem => treeitem.path == 'CITATION.cff').length == 1;
+}
+
+
+const includeUsesPullRequests = async (url) => {
+
+    if (npull_requests_minimum > 30) {
+        console.warn("Filter function does not account for pagination of the API--results may be affected.");
+    }
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
+    const pull_requests = await octokit.rest.pulls.list({
+        owner,
+        repo,
+        state: 'all'
+    });
+    const npull_requests = pull_requests.data.length;
+    return npull_requests > npull_requests_minimum;
 }
 
 
@@ -45,11 +59,14 @@ const filterAsync = async (arr, asyncCallback) => {
 const urls_rsd = loadFromJsonfile('./urls.json');
 const whitelist = loadFromJsonfile('./whitelist.json');
 
+const npull_requests_minimum = 5;
+
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
 let urls = urls_rsd;
 urls = urls.filter(includeWhitelisted);
-urls = await filterAsync(whitelist, includeHasCitationcff);
+urls = await filterAsync(urls, includeHasCitationcff);
+urls = await filterAsync(urls, includeUsesPullRequests);
 
 console.log(urls);
 
