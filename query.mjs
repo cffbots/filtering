@@ -49,7 +49,7 @@ const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
 let urls = urls_rsd;
 urls = urls.filter(includeWhitelisted);
-urls = await filterAsync(whitelist, includeHasCitationcff);
+urls = await filterAsync(urls, includeHasCitationcff);
 
 console.log(urls);
 
