@@ -67,6 +67,21 @@ const hasMultipleChangesToCitationcff = async (url) => {
 }
 
 
+const hasRecentCommits = async (url) => {
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
+
+    const commits = await octokit.rest.repos.listCommits({
+        owner,
+        repo,
+        per_page: 1
+    });
+
+    const commit_date = new Date(commits.data[0].commit.author.date);
+    const elapsed = Date.now() - commit_date
+
+    return elapsed <= inactivity_threshold
+}
+
 const filterAsync = async (arr, asyncCallback) => {
     const promises = arr.map(asyncCallback);
     const results = await Promise.all(promises);
@@ -85,6 +100,7 @@ const urls_rsd = loadFromJsonfile('./urls.json');
 
 const nworkflows_minimum = 1;
 const npull_requests_minimum = 5;
+const inactivity_threshold = 12 * 30 * 24 * 60 * 60 * 1000 // X months in milliseconds -> X months * 30 days/month * 24 hours/day * 60 min/hour * 60 sec/min * 1000
 
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
@@ -93,6 +109,7 @@ urls = await filterAsync(urls, includeHasCitationcff);
 urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
 urls = await filterAsync(urls, includeUsesWorkflows);
+urls = await filterAsync(urls, hasRecentCommits);
 
 console.log(urls);
 
