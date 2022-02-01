@@ -1,6 +1,6 @@
 import { Octokit } from "octokit";
 import * as fs from 'fs';
-
+import { exec } from "child_process";
 
 const loadFromJsonfile = (filename) => {
     const data = fs.readFileSync(filename, 'utf8');
@@ -28,6 +28,42 @@ const includeHasCitationcff = async (url) => {
 }
 
 
+const includeHasValidcff = async (url) => {
+
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
+
+    const { data: { default_branch } } = await octokit.request('GET /repos/{owner}/{repo}', { owner, repo });
+
+    const cmd = `docker run --rm -i citationcff/cffconvert:2.0.0 --validate --url ${url}/tree/${default_branch}`
+
+    const checkValidString = "Citation metadata are valid according to schema"
+
+    const execPromise = (command) => {
+        return new Promise(function(resolve, reject) {
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                resolve(stdout.trim());
+            });
+        });
+    }
+
+    let result;
+    try {
+        result = await execPromise(cmd);
+        console.log('Success: ', url);
+        if (result.includes(checkValidString)) {
+            return true;
+        }
+    } catch (error) {
+        console.error('Failed: ', url); 
+    }
+
+}
+
+
 const filterAsync = async (arr, asyncCallback) => {
     const promises = arr.map(asyncCallback);
     const results = await Promise.all(promises);
@@ -50,8 +86,9 @@ const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 let urls = urls_rsd;
 urls = urls.filter(includeWhitelisted);
 urls = await filterAsync(whitelist, includeHasCitationcff);
+urls = await filterAsync(urls, includeHasValidcff);
 
-console.log(urls);
+console.log('urls: ', urls);
 
 
 //const q = 'cffconvert-github-action in:file path:.github/workflows';
