@@ -34,7 +34,7 @@ const includeHasValidcff = async (url) => {
 
     const { data: { default_branch } } = await octokit.request('GET /repos/{owner}/{repo}', { owner, repo });
 
-    const cmd = `docker run --rm -i citationcff/cffconvert:2.0.0 --validate --url ${url}/tree/${default_branch}`
+    const dockerCommand = `docker run --rm -i citationcff/cffconvert:2.0.0 --validate --url ${url}/tree/${default_branch}`
 
     const checkValidString = "Citation metadata are valid according to schema"
 
@@ -52,13 +52,16 @@ const includeHasValidcff = async (url) => {
 
     let result;
     try {
-        result = await execPromise(cmd);
-        console.log('Success: ', url);
+        result = await execPromise(dockerCommand);
+        console.log('\n\n===============================')
+        console.log('Success: ', url, default_branch);
         if (result.includes(checkValidString)) {
             return true;
         }
     } catch (error) {
-        console.error('Failed: ', url); 
+        console.log('\n\n===============================')        
+        console.error('Failed: ', url, default_branch); 
+        console.error('Error: ', error);
     }
 
 }
@@ -88,7 +91,7 @@ urls = urls.filter(includeWhitelisted);
 urls = await filterAsync(whitelist, includeHasCitationcff);
 urls = await filterAsync(urls, includeHasValidcff);
 
-console.log('urls: ', urls);
+console.log('Filtered urls: ', urls);
 
 
 //const q = 'cffconvert-github-action in:file path:.github/workflows';
