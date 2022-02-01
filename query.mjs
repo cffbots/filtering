@@ -28,6 +28,20 @@ const includeHasCitationcff = async (url) => {
 }
 
 
+const hasMultipleChangesToCitationcff = async (url) => {
+
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
+
+    const commits = await octokit.rest.repos.listCommits({
+        owner,
+        repo,
+        path: 'CITATION.cff'
+    });
+
+    return commits.data.length > 1
+}
+
+
 const filterAsync = async (arr, asyncCallback) => {
     const promises = arr.map(asyncCallback);
     const results = await Promise.all(promises);
@@ -50,6 +64,7 @@ const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 let urls = urls_rsd;
 urls = urls.filter(includeWhitelisted);
 urls = await filterAsync(urls, includeHasCitationcff);
+urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
 
 console.log(urls);
 
