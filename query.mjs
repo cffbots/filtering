@@ -33,7 +33,7 @@ const includeUsesWorkflows = async (url) => {
         owner,
         repo,
     });
-    return nworkflows > nworkflows_minimum;
+    return nworkflows >= nworkflows_minimum;
 }
 
 
