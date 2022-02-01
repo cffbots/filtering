@@ -38,7 +38,18 @@ const includeUsesPullRequests = async (url) => {
         state: 'all'
     });
     const npull_requests = pull_requests.data.length;
-    return npull_requests > npull_requests_minimum;
+    return npull_requests >= npull_requests_minimum;
+}
+
+
+const includeUsesWorkflows = async (url) => {
+
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
+    const { data: { total_count: nworkflows } } = await octokit.rest.actions.listRepoWorkflows({
+        owner,
+        repo,
+    });
+    return nworkflows >= nworkflows_minimum;
 }
 
 
@@ -71,17 +82,17 @@ const filterAsync = async (arr, asyncCallback) => {
 
 
 const urls_rsd = loadFromJsonfile('./urls.json');
-const whitelist = loadFromJsonfile('./whitelist.json');
 
+const nworkflows_minimum = 1;
 const npull_requests_minimum = 5;
 
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
 let urls = urls_rsd;
-urls = urls.filter(includeWhitelisted);
 urls = await filterAsync(urls, includeHasCitationcff);
 urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
+urls = await filterAsync(urls, includeUsesWorkflows);
 
 console.log(urls);
 
