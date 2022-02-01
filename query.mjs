@@ -26,6 +26,22 @@ const includeHasCitationcff = async (url) => {
 }
 
 
+const includeUsesPullRequests = async (url) => {
+
+    if (npull_requests_minimum > 30) {
+        console.warn("Filter function does not account for pagination of the API--results may be affected.");
+    }
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
+    const pull_requests = await octokit.rest.pulls.list({
+        owner,
+        repo,
+        state: 'all'
+    });
+    const npull_requests = pull_requests.data.length;
+    return npull_requests >= npull_requests_minimum;
+}
+
+
 const includeUsesWorkflows = async (url) => {
 
     const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
@@ -68,11 +84,13 @@ const filterAsync = async (arr, asyncCallback) => {
 const urls_rsd = loadFromJsonfile('./urls.json');
 
 const nworkflows_minimum = 1;
+const npull_requests_minimum = 5;
 
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
 let urls = urls_rsd;
 urls = await filterAsync(urls, includeHasCitationcff);
+urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
 urls = await filterAsync(urls, includeUsesWorkflows);
 
