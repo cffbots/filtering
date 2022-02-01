@@ -110,8 +110,7 @@ urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
 urls = await filterAsync(urls, includeUsesWorkflows);
 urls = await filterAsync(urls, hasRecentCommits);
-
-console.log(urls);
+urls.forEach(url => console.log(url))
 
 
 //const q = 'cffconvert-github-action in:file path:.github/workflows';
