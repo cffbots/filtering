@@ -29,7 +29,7 @@ Install [`npm`](https://www.npmjs.com).
 Go to [https://github.com/settings/tokens](https://github.com/settings/tokens) and create a GitHub token.
 You don't need to give it any permissions (we'll only read public information).
 We also recommend setting an expiry date.
-You only have you change to copy it, so don't miss it.
+You only have one chance to copy it, so don't miss it.
 But if you missed it, you can re-generate it.
 
 Create an environment variable called `GITHUB_TOKEN` storing your token.
