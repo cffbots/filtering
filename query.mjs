@@ -35,7 +35,7 @@ const includeHasValidcff = async (url) => {
 
     let result;
     try {
-        result = execSync(dockerCommand);
+        result = execSync(dockerCommand, {stdio: ['pipe', 'pipe', 'ignore']});
     } catch {
         return false;
     }
