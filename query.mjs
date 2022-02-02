@@ -116,6 +116,25 @@ const hasRecentCommits = async (url) => {
     return elapsed <= inactivity_threshold
 }
 
+
+const hasSufficientContributors = async (url) => {
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
+
+    const contributors = await octokit.rest.repos.listContributors({
+        owner,
+        repo,
+    });
+
+    let ncontributors = 0
+    for (const c of contributors.data) {
+        if (c.contributions >= ncontributions_minimum) {
+            ncontributors++;
+        }
+    }
+
+    return ncontributors >= ncontributors_minimum;
+}
+
 const filterAsync = async (arr, asyncCallback) => {
     const promises = arr.map(asyncCallback);
     const results = await Promise.all(promises);
@@ -135,6 +154,8 @@ const urls_rsd = loadFromJsonfile('./urls.json');
 const nworkflows_minimum = 1;
 const npull_requests_minimum = 5;
 const inactivity_threshold = 12 * 30 * 24 * 60 * 60 * 1000 // X months in milliseconds -> X months * 30 days/month * 24 hours/day * 60 min/hour * 60 sec/min * 1000
+const ncontributors_minimum = 3;
+const ncontributions_minimum = 5;
 
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
@@ -145,6 +166,7 @@ urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
 urls = await filterAsync(urls, includeUsesWorkflows);
 urls = await filterAsync(urls, hasRecentCommits);
 urls = await filterAsync(urls, includeHasValidcff);
+urls = await filterAsync(urls, hasSufficientContributors);
 urls.forEach(url => console.log(url))
 
 
