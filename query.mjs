@@ -132,8 +132,7 @@ const filterAsync = async (arr, asyncCallback) => {
 }
 
 
-const urls_rsd = loadFromJsonfile('./urls.json');
-const whitelist = loadFromJsonfile('./whitelist.json');
+
 
 const nworkflows_minimum = 1;
 const npull_requests_minimum = 5;
@@ -143,7 +142,7 @@ const ncontributions_minimum = 5;
 
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
-let urls = urls_rsd;
+let urls = loadFromJsonfile('./rsd-urls.json');
 urls = await filterAsync(urls, includeHasCitationcff);
 urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
