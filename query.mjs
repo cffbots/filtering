@@ -51,8 +51,6 @@ const includeHasValidcff = async (url) => {
     let result;
     try {
         result = await execPromise(dockerCommand);
-        // console.log('\n\n===============================')
-        // console.log('Success: ', url, default_branch);
         if (result.includes(checkValidString)) {
             return true;
         }
