@@ -55,9 +55,6 @@ const includeHasValidcff = async (url) => {
             return true;
         }
     } catch (error) {
-        // console.log('\n\n===============================')        
-        // console.error('Failed: ', url, default_branch); 
-        // console.error('Error: ', error);
     }
 
 }
