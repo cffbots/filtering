@@ -139,7 +139,6 @@ const inactivity_threshold = 12 * 30 * 24 * 60 * 60 * 1000 // X months in millis
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
 let urls = urls_rsd;
-urls = urls.filter(includeWhitelisted);
 urls = await filterAsync(urls, includeHasCitationcff);
 urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
