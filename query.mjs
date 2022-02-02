@@ -1,6 +1,6 @@
 import { Octokit } from "octokit";
 import * as fs from 'fs';
-
+import { exec } from "child_process";
 
 const loadFromJsonfile = (filename) => {
     const data = fs.readFileSync(filename, 'utf8');
@@ -23,6 +23,40 @@ const includeHasCitationcff = async (url) => {
         tree_sha: default_branch
     });
     return tree.filter(treeitem => treeitem.path == 'CITATION.cff').length == 1;
+}
+
+
+const includeHasValidcff = async (url) => {
+
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
+
+    const { data: { default_branch } } = await octokit.request('GET /repos/{owner}/{repo}', { owner, repo });
+
+    const dockerCommand = `docker run --rm -i citationcff/cffconvert:2.0.0 --validate --url ${url}/tree/${default_branch}`
+
+    const checkValidString = "Citation metadata are valid according to schema"
+
+    const execPromise = (command) => {
+        return new Promise(function(resolve, reject) {
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                resolve(stdout.trim());
+            });
+        });
+    }
+
+    let result;
+    try {
+        result = await execPromise(dockerCommand);
+        if (result.includes(checkValidString)) {
+            return true;
+        }
+    } catch (error) {
+    }
+
 }
 
 
@@ -131,6 +165,7 @@ urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
 urls = await filterAsync(urls, includeUsesWorkflows);
 urls = await filterAsync(urls, hasRecentCommits);
+urls = await filterAsync(urls, includeHasValidcff);
 urls = await filterAsync(urls, hasSufficientContributors);
 urls.forEach(url => console.log(url))
 
