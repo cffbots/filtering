@@ -149,8 +149,6 @@ const filterAsync = async (arr, asyncCallback) => {
 }
 
 
-const urls_rsd = loadFromJsonfile('./urls.json');
-
 const nworkflows_minimum = 1;
 const npull_requests_minimum = 5;
 const inactivity_threshold = 12 * 30 * 24 * 60 * 60 * 1000 // X months in milliseconds -> X months * 30 days/month * 24 hours/day * 60 min/hour * 60 sec/min * 1000
@@ -159,21 +157,12 @@ const ncontributions_minimum = 5;
 
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
-let urls = urls_rsd;
+let urls = loadFromJsonfile('./cherrypicked.json');
 urls = await filterAsync(urls, includeHasCitationcff);
 urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
 urls = await filterAsync(urls, includeUsesWorkflows);
 urls = await filterAsync(urls, hasRecentCommits);
-urls = await filterAsync(urls, includeHasValidcff);
 urls = await filterAsync(urls, hasSufficientContributors);
+urls = await filterAsync(urls, includeHasValidcff);
 urls.forEach(url => console.log(url))
-
-
-//const q = 'cffconvert-github-action in:file path:.github/workflows';
-// const q = 'CITATION.cff in:path path:/';
-// const { data } = await octokit.request('GET /search/code', { q });
-
-//data.items.forEach((item) => {
-//  console.log(item.repository.html_url);
-//})
