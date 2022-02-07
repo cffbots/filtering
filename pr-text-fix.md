@@ -1,8 +1,8 @@
-Pull Request title: CITATION.cff fix and automatic validation of your citation metadata
+Pull Request title: Fix CITATION.cff and add automatic validation of your citation metadata
 
 Hello!
 
-We noticed that your CITATION.cff had a small issue and fixed it - possibly by just updating `cffversion` to 1.2.0.
+We noticed that your `CITATION.cff` had a small issue and fixed it.
 
 In addition to the fix, this Pull Request automates validation of that file using the [cffconvert GitHub Action](https://github.com/marketplace/actions/cffconvert). That way, it's a little bit easier to be robust against future changes to the `CITATION.cff` file.
 
