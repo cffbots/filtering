@@ -108,12 +108,9 @@ const hasSufficientContributors = async (url) => {
         repo,
     });
 
-    let ncontributors = 0
-    for (const c of contributors.data) {
-        if (c.contributions >= ncontributions_minimum) {
-            ncontributors++;
-        }
-    }
+    const ncontributors = contributors.data
+        .filter(contributor => contributor.contributions >= ncontributions_minimum)
+        .length
 
     return ncontributors >= ncontributors_minimum;
 }
@@ -130,8 +127,6 @@ const filterAsync = async (arr, asyncCallback) => {
     .filter(item => item.result === true)
     .map(item => item.value);
 }
-
-
 
 
 const nworkflows_minimum = 1;
