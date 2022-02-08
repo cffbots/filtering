@@ -1,6 +1,6 @@
 import { Octokit } from "octokit";
 import * as fs from 'fs';
-import { exec } from "child_process";
+import { execSync } from "child_process";
 
 const loadFromJsonfile = (filename) => {
     const data = fs.readFileSync(filename, 'utf8');
@@ -29,34 +29,20 @@ const includeHasCitationcff = async (url) => {
 const includeHasValidcff = async (url) => {
 
     const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
-
     const { data: { default_branch } } = await octokit.request('GET /repos/{owner}/{repo}', { owner, repo });
-
-    const dockerCommand = `docker run --rm -i citationcff/cffconvert:2.0.0 --validate --url ${url}/tree/${default_branch}`
-
-    const checkValidString = "Citation metadata are valid according to schema"
-
-    const execPromise = (command) => {
-        return new Promise(function(resolve, reject) {
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-                resolve(stdout.trim());
-            });
-        });
-    }
+    const dockerCommand = `docker run --rm -i citationcff/cffconvert:2.0.0 --validate --url ${url}/tree/${default_branch}`;
+    const outputWhenValid = "Citation metadata are valid according to schema";
 
     let result;
     try {
-        result = await execPromise(dockerCommand);
-        if (result.includes(checkValidString)) {
-            return true;
-        }
-    } catch (error) {
+        result = execSync(dockerCommand, {stdio: ['pipe', 'pipe', 'ignore']});
+    } catch {
+        return false;
     }
-
+    if (result === null) {
+        return false;
+    }
+    return result.toString().startsWith(outputWhenValid);
 }
 
 
@@ -90,7 +76,6 @@ const includeUsesWorkflows = async (url) => {
 const hasMultipleChangesToCitationcff = async (url) => {
 
     const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
-
     const commits = await octokit.rest.repos.listCommits({
         owner,
         repo,
@@ -102,17 +87,15 @@ const hasMultipleChangesToCitationcff = async (url) => {
 
 
 const hasRecentCommits = async (url) => {
-    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
 
+    const [ owner, repo, ...unuseds ] = url.slice("https://github.com/".length).split('/');
     const commits = await octokit.rest.repos.listCommits({
         owner,
         repo,
         per_page: 1
     });
-
     const commit_date = new Date(commits.data[0].commit.author.date);
     const elapsed = Date.now() - commit_date
-
     return elapsed <= inactivity_threshold
 }
 
@@ -154,12 +137,12 @@ const ncontributions_minimum = 5;
 
 const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
 
-let urls = loadFromJsonfile('./urls.json');
+let urls = loadFromJsonfile('./rsd-urls.json');
 urls = await filterAsync(urls, includeHasCitationcff);
 urls = await filterAsync(urls, includeUsesPullRequests);
 urls = await filterAsync(urls, hasMultipleChangesToCitationcff);
 urls = await filterAsync(urls, includeUsesWorkflows);
 urls = await filterAsync(urls, hasRecentCommits);
-urls = await filterAsync(urls, includeHasValidcff);
 urls = await filterAsync(urls, hasSufficientContributors);
+urls = await filterAsync(urls, includeHasValidcff);
 urls.forEach(url => console.log(url))
